@@ -171,6 +171,7 @@ namespace screenShotSaver
         private void saveMultipleShots()
         {
             uint continousShotCount = 0;
+            bool freqMessage = true; //for email (freq>=60)
             try
             {
                 Int32 time = (Int32)(numericFrequency.Value * 1000);
@@ -230,21 +231,30 @@ namespace screenShotSaver
                     labelShotCounter.Invoke((MethodInvoker)(() => labelShotCounter.Text = "Counter " + Convert.ToString(imgCount - 1)));
                     labelCurrentDirecoty.Invoke((MethodInvoker)(() => labelCurrentDirecoty.Text = "Saved in: " + imgName + "." + Convert.ToString(ext)));
 
-                    if (checkBoxEmail.Checked&&numericFrequency.Value>60)
+                    if (checkBoxEmail.Checked&&numericFrequency.Value>=60)
                     {
                         Task taskMail = new Task(() => sendMail());
                         taskMail.Start();
+                    }
+                    else
+                    {
+                        if (freqMessage)
+                        {
+                            MessageBox.Show("Please Select frequency higher than 60 (1 minute) for email"); //correct this
+                            freqMessage = false;
+                        }
                     }
 
                     imgCountTotal++;
                     continousShotCount++;
                     if (continousShotCount >= numericTotalShots.Value)
                     {
-                        MessageBox.Show(Convert.ToString(continousShotCount-1)+" ScreenShots captured", "Ta Da!! Task Done");
+                        MessageBox.Show(Convert.ToString(continousShotCount)+" ScreenShots captured", "Ta Da!! Task Done");
                         Invoke(new Action(() => { this.WindowState = FormWindowState.Normal; }));
                         break;
                     }
                     stopWatch.Stop();
+                    if (time > stopWatch.ElapsedMilliseconds)
                     Thread.Sleep(time-(int)stopWatch.ElapsedMilliseconds);
                     stopWatch.Reset();
                 }
@@ -266,12 +276,10 @@ namespace screenShotSaver
                 {
                     var diagRes = MessageBox.Show("Sorry You cannot Sent Email to Touseef\nAre you Touseef?", "Verification Required", MessageBoxButtons.YesNo);
                     if (diagRes == DialogResult.Yes)
-                    {
-                        var loc = this.Location;
-                        authentication auth = new authentication(); //simple authentication form
-                        auth.Location = new Point(loc.X+100, loc.Y+100);
+                    {                     
+                        authentication auth = new authentication(); //simple authentication form                      
                         auth.ShowDialog();
-                                              
+                   
                         if (!authentication.verifiedUser)
                         {
                             return;

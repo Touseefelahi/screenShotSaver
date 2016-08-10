@@ -31,6 +31,8 @@ namespace screenShotSaver
         public authentication()
         {
             InitializeComponent();
+            System.Media.SystemSounds.Asterisk.Play();
+            this.FormBorderStyle = FormBorderStyle.Fixed3D;
         }
 
         private void buttonSubmitPasskey_Click(object sender, EventArgs e)

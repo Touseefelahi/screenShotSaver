@@ -82,11 +82,12 @@
             this.Controls.Add(this.buttonSubmitPasskey);
             this.Controls.Add(this.textBoxPassKey);
             this.Controls.Add(this.labelPassKey);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "authentication";
-            this.Text = "authentication";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.Text = "Authentication";
             this.TopMost = true;
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxPassKey_KeyDown);
             this.ResumeLayout(false);
