@@ -57,6 +57,12 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="authentication.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="authentication.Designer.cs">
+      <DependentUpon>authentication.cs</DependentUpon>
+    </Compile>
     <Compile Include="ScreenShot.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -65,6 +71,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="authentication.resx">
+      <DependentUpon>authentication.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ScreenShot.resx">
       <DependentUpon>ScreenShot.cs</DependentUpon>
     </EmbeddedResource>

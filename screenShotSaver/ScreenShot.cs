@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 
 /// <forCompression>
 /// For Specific Quality to save jpg image file
@@ -24,7 +25,7 @@ namespace screenShotSaver
 {
     public partial class screenShotSaver : Form
     {
-        #region Inializations
+        #region Initializations
         Bitmap dstImage, srcImage;
         string pathToImage, defImageName, imgName;
         enum extension
@@ -38,10 +39,10 @@ namespace screenShotSaver
         bool flagByDate = false;
         Stopwatch stopWatch = new Stopwatch();
         Size originalFormSize;
-
         public screenShotSaver()
         {
             InitializeComponent();
+            //loading configurations from settings
             defImageName = Settings.Default.NAME;
             pathToImage = Settings.Default.PATH;
             textBoxEmailID.Text = Settings.Default.Email;
@@ -54,6 +55,7 @@ namespace screenShotSaver
         #region General Functions
         private void saveSingleShot()
         {
+            //releasing memory
             if (dstImage != null)
             {
                 dstImage.Dispose();
@@ -62,7 +64,7 @@ namespace screenShotSaver
             {
                 srcImage.Dispose();
             }
-
+            //checking if minimal mode is on or not
             if (!checkBoxMinMode.Checked)
             {
                 this.Hide();
@@ -86,8 +88,10 @@ namespace screenShotSaver
             recGraphics.CopyFromScreen(ptStart, ptEnd, recSize);
               */
 
+            //this block is for display, this isn't required in minimal mode checking that are we in full mode or not
             if (!checkBoxMinMode.Checked)
             {
+                //In this block we will resize the screen-shot to our picture box size for proper display
                 bool scaled = (width != size.Width || height != size.Height);
 
                 dstImage = srcImage;
@@ -110,24 +114,25 @@ namespace screenShotSaver
                 dstGraphics.Dispose();
                 this.Show();
             }
-            else
+            else  
             {
-                srcGraphics.CopyFromScreen(0, 0, 0, 0, size);
+                srcGraphics.CopyFromScreen(0, 0, 0, 0, size);   //taking screen shot
             }
             srcGraphics.Dispose();
 
-            if (checkBoxEmail.Checked)
+            if (checkBoxEmail.Checked) //checking weather to send mail or not
             {               
                Task taskMail=new Task(()=> sendMail());
                taskMail.Start();
                Thread.Sleep(100);
             }
-
+            //in this block we will try to save the image to the required folder
             try
             {
-                if (flagByDate)
+                if (flagByDate) 
                 {
                     imgName = pathToImage + DateTime.Now.ToString(@"dd\_MM\_yyyy h\_mm_ss");
+                    imgCount++;
                 }
                 else
                 {
@@ -171,7 +176,7 @@ namespace screenShotSaver
                 Int32 time = (Int32)(numericFrequency.Value * 1000);
                 while (checkBoxMultipleShots.Checked)
                 {
-                    stopWatch.Start();
+                    stopWatch.Start();  //starting stopwatch to add the runtime delay of this process
                     if (srcImage != null)
                     {
                         srcImage.Dispose();
@@ -184,12 +189,13 @@ namespace screenShotSaver
                     Graphics srcGraphics = Graphics.FromImage(srcImage);
                     srcGraphics.CopyFromScreen(0, 0, 0, 0, size);
                     srcGraphics.Dispose();
-                    pictureBoxDisplay.Image = srcImage;
+                    pictureBoxDisplay.Image = srcImage;  //displaying full frame, we can see the portion of image
                     try
                     {
                         if (flagByDate)
                         {
                             imgName = pathToImage + DateTime.Now.ToString(@"dd\_MM\_yyyy h\_mm_ss");
+                            imgCount++;
                         }
                         else
                         {
@@ -229,11 +235,12 @@ namespace screenShotSaver
                         Task taskMail = new Task(() => sendMail());
                         taskMail.Start();
                     }
+
                     imgCountTotal++;
                     continousShotCount++;
-                    if (continousShotCount > numericTotalShots.Value)
+                    if (continousShotCount >= numericTotalShots.Value)
                     {
-                        MessageBox.Show(Convert.ToString(continousShotCount-1)+" ScreenShots captured", "Done");
+                        MessageBox.Show(Convert.ToString(continousShotCount-1)+" ScreenShots captured", "Ta Da!! Task Done");
                         Invoke(new Action(() => { this.WindowState = FormWindowState.Normal; }));
                         break;
                     }
@@ -251,59 +258,59 @@ namespace screenShotSaver
 
         private void sendMail()
         {
+            var email = textBoxEmailID.Text.ToLower();
 
-            if (textBoxEmailID.Text == "telahi@stira.sa")
+            if (email == "telahi@stira.sa"|| email=="touseefelahi@ymail.com")
             {
-                MessageBox.Show("Sorry You cannot Sent Email to Touseef");
-                return;
-            }
-            else
-            if (textBoxEmailID.Text == "Telahi@stira.sa")
-            {
-                MessageBox.Show("Sorry You cannot Sent Email to Touseef");
-                return;
-            }
-            else
-            if (textBoxEmailID.Text == "TElahi@stira.sa")
-            {
-                MessageBox.Show("Sorry You cannot Sent Email to Touseef");
-                return;
-            }
-            else
-            if (textBoxEmailID.Text == "telahI@stira.sa")
-            {
-                MessageBox.Show("Sorry You cannot Sent Email to Touseef");
-                return;
-            }
-            else
-                try
+                if (!authentication.rememberMe)
                 {
-                    MailMessage Msg = new MailMessage();
-                    Msg.From = new MailAddress("telahi@stira.sa");
-                    Msg.To.Add(textBoxEmailID.Text);
-                    Msg.Subject = "ScreenShot Image";
-                    Msg.Body = "I hope this email finds you in good health.\n Check your Screen Shot";
+                    var diagRes = MessageBox.Show("Sorry You cannot Sent Email to Touseef\nAre you Touseef?", "Verification Required", MessageBoxButtons.YesNo);
+                    if (diagRes == DialogResult.Yes)
+                    {
+                        var loc = this.Location;
+                        authentication auth = new authentication(); //simple authentication form
+                        auth.Location = new Point(loc.X+100, loc.Y+100);
+                        auth.ShowDialog();
+                                              
+                        if (!authentication.verifiedUser)
+                        {
+                            return;
+                        }
 
-                    var splices = imgName.Split('.');
-                    var a = splices[splices.Length - 1].Length;
-                    if (a != 3)//if there is no extension
-                        imgName = imgName + "." + Convert.ToString(ext);
+                    }
+                    else
+                        return;
+                }            
+            }
 
-                    Attachment imageAttachment = new Attachment(imgName);
-                    Msg.Attachments.Add(imageAttachment);
-                    SmtpClient smtp = new SmtpClient();
-                    smtp.Host = "smtp.gmail.com";
-                    smtp.Port = 587;
-                    smtp.Credentials = new System.Net.NetworkCredential("touseefelahi07@gmail.com", "t.3874367");
-                    smtp.EnableSsl = true;
-                    smtp.Send(Msg);
-                    emailCountTotal++;
-                }
+            try
+            {
+                MailMessage Msg = new MailMessage();
+                Msg.From = new MailAddress("telahi@stira.sa");
+                Msg.To.Add(textBoxEmailID.Text);
+                Msg.Subject = "ScreenShot Image";
+                Msg.Body = "I hope this email finds you in good health.\n Check your Screen Shot";
 
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error Sending Email\n" + Convert.ToString(ex));
-                }
+                var splices = imgName.Split('.');
+                var a = splices[splices.Length - 1].Length;
+                if (a != 3)//if there is no extension
+                    imgName = imgName + "." + Convert.ToString(ext);
+
+                Attachment imageAttachment = new Attachment(imgName);
+                Msg.Attachments.Add(imageAttachment);
+                SmtpClient smtp = new SmtpClient();
+                smtp.Host = "smtp.gmail.com";
+                smtp.Port = 587;
+                smtp.Credentials = new System.Net.NetworkCredential("touseefelahi07@gmail.com", "t.3874367");
+                smtp.EnableSsl = true;
+                smtp.Send(Msg);
+                emailCountTotal++;
+            }
+
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error Sending Email\n" + Convert.ToString(ex));
+            }
         }
         #endregion
 
